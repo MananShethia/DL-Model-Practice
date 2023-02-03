@@ -1,0 +1,31 @@
+import gdal
+
+# Open the red band .tif image file
+red_band_file = gdal.Open("red_band.tif")
+
+# Get the lat and lon information from the red band image file
+red_band_gt = red_band_file.GetGeoTransform()
+
+# Open the .img image file
+img_file = gdal.Open("input.img")
+
+# Get the image projection information
+img_proj = img_file.GetProjection()
+
+# Update the geotransform information of the .img image with the lat and lon information from the red band image
+img_gt = (red_band_gt[0], red_band_gt[1], 0, red_band_gt[3], 0, red_band_gt[5])
+
+# Create a new .tif file
+tif_file = gdal.GetDriverByName("GTiff").Create("output.tif", img_file.RasterXSize, img_file.RasterYSize, img_file.RasterCount, img_file.GetRasterBand(1).DataType)
+
+# Set the image projection and geotransform information
+tif_file.SetProjection(img_proj)
+tif_file.SetGeoTransform(img_gt)
+
+# Copy the image data from the .img file to the .tif file
+for i in range(img_file.RasterCount):
+    band = img_file.GetRasterBand(i + 1)
+    tif_file.GetRasterBand(i + 1).WriteArray(band.ReadAsArray())
+
+# Close the .tif file
+tif_file = None

@@ -1,0 +1,51 @@
+import gdal
+
+# Open the .img image file
+img_file = gdal.Open("input.img")
+
+# Get the image projection and geotransform information
+img_proj = img_file.GetProjection()
+img_gt = img_file.GetGeoTransform()
+
+# Open the .tif image file
+tif_file = gdal.Open("red_band.tif")
+
+# Get the image projection and geotransform information
+tif_proj = tif_file.GetProjection()
+tif_gt = tif_file.GetGeoTransform()
+
+# Check if the dimensions of the .img and .tif images match
+if img_file.RasterXSize != tif_file.RasterXSize or img_file.RasterYSize != tif_file.RasterYSize:
+    # If the dimensions don't match, resize the .img image to match the .tif image
+    # Resize the .img image to match the dimensions of the .tif image
+    img_resized = cv2.resize(img_file, (tif_file.RasterXSize, tif_file.RasterYSize), interpolation = cv2.INTER_AREA)
+
+    # Create a new .tif file with the resized .img data
+    tif_converted = gdal.GetDriverByName("GTiff").Create("output.tif", tif_file.RasterXSize, tif_file.RasterYSize, img_file.RasterCount, img_file.GetRasterBand(1).DataType)
+
+    # Set the image projection and geotransform information
+    tif_converted.SetProjection(tif_proj)
+    tif_converted.SetGeoTransform(tif_gt)
+
+    # Copy the image data from the resized .img file to the .tif file
+    for i in range(img_file.RasterCount):
+        band = img_resized[i]
+        tif_converted.GetRasterBand(i + 1).WriteArray(band)
+
+    # Close the .tif file
+    tif_converted = None
+else:
+    # If the dimensions match, create a new .tif file with the .img data
+    tif_converted = gdal.GetDriverByName("GTiff").Create("output.tif", img_file.RasterXSize, img_file.RasterYSize, img_file.RasterCount, img_file.GetRasterBand(1).DataType)
+
+    # Set the image projection and geotransform information
+    tif_converted.SetProjection(img_proj)
+    tif_converted.SetGeoTransform(img_gt)
+
+    # Copy the image data from the .img file to the .tif file
+    for i in range(img_file.RasterCount):
+        band = img_file.GetRasterBand(i + 1)
+        tif_converted.GetRasterBand(i + 1).WriteArray(band.ReadAsArray())
+
+    # Close the .tif file
+    tif_converted = None
