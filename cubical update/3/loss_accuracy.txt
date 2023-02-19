@@ -1,0 +1,35 @@
+The loss and accuracy can be checked during the training process by specifying the validation_data argument in the fit_generator method and then accessing the history of the training process after the training is completed.
+
+For example, in the code I provided earlier:
+
+python
+Copy code
+history = model.fit_generator(train_generator, steps_per_epoch=100, epochs=10, validation_data=val_generator, validation_steps=50)
+The history object contains the information about the loss and accuracy of the model during the training process. You can access the loss and accuracy values using the following code:
+
+python
+Copy code
+# Access the loss and accuracy values
+loss = history.history['loss']
+val_loss = history.history['val_loss']
+acc = history.history['accuracy']
+val_acc = history.history['val_accuracy']
+
+# Plot the loss and accuracy values
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(8, 8))
+plt.subplot(2, 1, 1)
+plt.plot(loss, label='Training Loss')
+plt.plot(val_loss, label='Validation Loss')
+plt.legend(loc='upper right')
+plt.title('Training and Validation Loss')
+
+plt.subplot(2, 1, 2)
+plt.plot(acc, label='Training Accuracy')
+plt.plot(val_acc, label='Validation Accuracy')
+plt.legend(loc='lower right')
+plt.title('Training and Validation Accuracy')
+
+plt.show()
+This code plots the loss and accuracy values during the training process, allowing you to monitor the performance of the model and determine whether it is overfitting or underfitting.

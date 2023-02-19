@@ -1,0 +1,139 @@
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+
+# Define the input shape
+input_shape = (256, 256, 3)
+
+# Define the number of classes
+n_classes = 4
+
+# Define the input layer
+inputs = keras.Input(shape=input_shape)
+
+# Define the encoding layers of the U-Net model
+c1 = layers.Conv2D(32, (3, 3), activation='relu', padding='same')(inputs)
+c1 = layers.BatchNormalization()(c1)
+c1 = layers.Conv2D(32, (3, 3), activation='relu', padding='same')(c1)
+c1 = layers.BatchNormalization()(c1)
+p1 = layers.MaxPooling2D((2, 2))(c1)
+
+c2 = layers.Conv2D(64, (3, 3), activation='relu', padding='same')(p1)
+c2 = layers.BatchNormalization()(c2)
+c2 = layers.Conv2D(64, (3, 3), activation='relu', padding='same')(c2)
+c2 = layers.BatchNormalization()(c2)
+p2 = layers.MaxPooling2D((2, 2))(c2)
+
+c3 = layers.Conv2D(128, (3, 3), activation='relu', padding='same')(p2)
+c3 = layers.BatchNormalization()(c3)
+c3 = layers.Conv2D(128, (3, 3), activation='relu', padding='same')(c3)
+c3 = layers.BatchNormalization()(c3)
+p3 = layers.MaxPooling2D((2, 2))(c3)
+
+c4 = layers.Conv2D(256, (3, 3), activation='relu', padding='same')(p3)
+c4 = layers.BatchNormalization()(c4)
+c4 = layers.Conv2D(256, (3, 3), activation='relu', padding='same')(c4)
+c4 = layers.BatchNormalization()(c4)
+p4 = layers.MaxPooling2D((2, 2))(c4)
+
+# Define the decoding layers of the U-Net model
+u1 = layers.Conv2DTranspose(128, (2, 2), strides=(2, 2), padding='same')(p4)
+u1 = layers.concatenate([u1, c3])
+c5 = layers.Conv2D(128, (3, 3), activation='relu', padding='same')(u1)
+c5 = layers.BatchNormalization()(c5)
+c5 = layers.Conv2D(128, (3, 3), activation='relu', padding='same')(c5)
+c5 = layers.BatchNormalization()(c5)
+
+u2 = layers.Conv2DTranspose(64, (2, 2), strides=(2
+.
+.
+.
+.
+u3 = layers.Conv2DTranspose(32, (2, 2), strides=(2, 2), padding='same')(c5)
+u3 = layers.concatenate([u3, c2])
+c6 = layers.Conv2D(64, (3, 3), activation='relu', padding='same')(u3)
+c6 = layers.BatchNormalization()(c6)
+c6 = layers.Conv2D(64, (3, 3), activation='relu', padding='same')(c6)
+c6 = layers.BatchNormalization()(c6)
+
+u4 = layers.Conv2DTranspose(16, (2, 2), strides=(2, 2), padding='same')(c6)
+u4 = layers.concatenate([u4, c1])
+c7 = layers.Conv2D(32, (3, 3), activation='relu', padding='same')(u4)
+c7 = layers.BatchNormalization()(c7)
+c7 = layers.Conv2D(32, (3, 3), activation='relu', padding='same')(c7)
+c7 = layers.BatchNormalization()(c7)
+
+Define the output layer
+outputs = layers.Conv2D(n_classes, (1, 1), activation='softmax')(c7)
+
+Create the U-Net model
+model = keras.Model(inputs, outputs)
+
+Compile the model
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+
+
+
+
+
+
+Once you have created the model, you can compile it by specifying the optimizer, loss function, and metrics to evaluate the model during training and testing. For example:
+
+python
+Copy code
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+Next, you will need to load your data and split it into training and validation sets. Then, you can train the model using the fit function. For example:
+
+bash
+Copy code
+# Load your data and split into training and validation sets
+(x_train, y_train), (x_val, y_val) = load_data()
+
+# Train the model
+history = model.fit(x_train, y_train, batch_size=32, epochs=10, validation_data=(x_val, y_val))
+After the training process is complete, you can evaluate the model on a test set and make predictions on new data using the evaluate and predict functions, respectively. For example:
+
+python
+Copy code
+# Evaluate the model on the test set
+test_loss, test_acc = model.evaluate(x_test, y_test)
+print('Test Accuracy:', test_acc)
+
+# Make predictions on new data
+predictions = model.predict(x_new)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Compile the model
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+# Fit the model on the training data
+model.fit(x_train, y_train, epochs=20, batch_size=32)
+
+# Evaluate the model on the validation data
+val_loss, val_acc = model.evaluate(x_val, y_val)
+print('Validation loss:', val_loss)
+print('Validation accuracy:', val_acc)
+
+# Make predictions on the test data
+predictions = model.predict(x_test)

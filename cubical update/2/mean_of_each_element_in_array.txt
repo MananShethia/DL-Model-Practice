@@ -1,0 +1,22 @@
+how to know percentage of each element in an array using numpy python
+You can calculate the percentage of each element in an array using numpy as follows:
+
+python
+Copy code
+import numpy as np
+
+arr = np.array([1, 2, 3, 4, 5, 6])
+unique, counts = np.unique(arr, return_counts=True)
+percentages = counts / arr.size * 100
+for value, percentage in zip(unique, percentages):
+    print(f"Value: {value}, Percentage: {percentage}%")
+This will output:
+
+yaml
+Copy code
+Value: 1, Percentage: 16.67%
+Value: 2, Percentage: 16.67%
+Value: 3, Percentage: 16.67%
+Value: 4, Percentage: 16.67%
+Value: 5, Percentage: 16.67%
+Value: 6, Percentage: 16.67%

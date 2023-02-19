@@ -1,0 +1,11 @@
+# save the model to a HDF5 file
+model.save('model.h5')
+
+
+
+
+# load the saved model
+loaded_model = keras.models.load_model('model.h5')
+
+# evaluate the loaded model on a new dataset
+loaded_model.evaluate(x_test, y_test, verbose=0)

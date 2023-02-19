@@ -1,0 +1,23 @@
+# define a callback to save the history of training
+class LossAndAccuracyHistory(keras.callbacks.Callback):
+    def on_train_begin(self, logs={}):
+        self.losses = []
+        self.accuracies = []
+
+    def on_batch_end(self, batch, logs={}):
+        self.losses.append(logs.get('loss'))
+        self.accuracies.append(logs.get('acc'))
+
+history_callback = LossAndAccuracyHistory()
+
+# train the model using a generator
+history = model.fit_generator(
+    generator=train_generator,
+    steps_per_epoch=steps_per_epoch,
+    epochs=epochs,
+    callbacks=[history_callback]
+)
+
+# access the loss and accuracy values during training
+losses = history_callback.losses
+accuracies = history_callback.accuracies

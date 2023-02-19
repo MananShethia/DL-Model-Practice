@@ -1,0 +1,20 @@
+import numpy as np
+
+# Load the image
+img = ... # Load the image
+
+# Calculate the required padding to make the image divisible by 256
+rows_pad = 256 - (img.shape[0] % 256)
+cols_pad = 256 - (img.shape[1] % 256)
+
+# Add padding to the bottom and right of the image
+img = np.pad(img, [(0, rows_pad), (0, cols_pad)], mode='reflect')
+
+# If the image still isn't divisible by 256, add padding to the top and left of the image
+if img.shape[0] % 256 != 0:
+    rows_pad = 256 - (img.shape[0] % 256)
+    img = np.pad(img, [(rows_pad//2, rows_pad - rows_pad//2), (0, 0)], mode='reflect')
+
+if img.shape[1] % 256 != 0:
+    cols_pad = 256 - (img.shape[1] % 256)
+    img = np.pad(img, [(0, 0), (cols_pad//2, cols_pad - cols_pad//2)], mode='reflect')

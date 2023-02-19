@@ -1,0 +1,19 @@
+import gdal
+import numpy as np
+
+# Load the image using GDAL
+ds = gdal.Open("path/to/image.tif")
+arr = ds.ReadAsArray()
+
+# Determine the amount of padding needed to make the image divisible by 256x256
+row_pad = (256 - (arr.shape[0] % 256)) % 256
+col_pad = (256 - (arr.shape[1] % 256)) % 256
+
+# Pad the image with mirrored values along the bottom and right edges
+arr = np.pad(arr, [(0, row_pad), (0, col_pad)], mode="reflect")
+
+# Save the padded image using GDAL
+driver = gdal.GetDriverByName("GTiff")
+dst_ds = driver.Create("padded_image.tif", arr.shape[1], arr.shape[0], 1, gdal.GDT_Float32)
+dst_ds.GetRasterBand(1).WriteArray(arr)
+dst_ds = None  # Close the file

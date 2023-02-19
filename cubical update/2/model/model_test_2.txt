@@ -1,0 +1,36 @@
+import numpy as np
+import tensorflow as tf
+from tensorflow import keras
+
+# Load the RGB patches and ground truth patches
+X = np.load("rgb_patches.npy")
+y = np.load("gt_patches.npy")
+
+# Preprocess the data
+X = X.astype('float32') / 255.0
+y = y.astype('float32') / 255.0
+
+# Split the data into training and validation sets
+X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Define the model
+model = keras.Sequential([
+    keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(256, 256, 3)),
+    keras.layers.MaxPooling2D((2, 2)),
+    keras.layers.Conv2D(64, (3, 3), activation='relu'),
+    keras.layers.MaxPooling2D((2, 2)),
+    keras.layers.Conv2D(128, (3, 3), activation='relu'),
+    keras.layers.MaxPooling2D((2, 2)),
+    keras.layers.Flatten(),
+    keras.layers.Dense(512, activation='relu'),
+    keras.layers.Dense(1, activation='sigmoid')
+])
+
+# Compile the model
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+# Train the model
+history = model.fit(X_train, y_train, epochs=20, batch_size=64, validation_data=(X_val, y_val))
+
+# Save the model
+model.save("cloud_detection_model.h5")

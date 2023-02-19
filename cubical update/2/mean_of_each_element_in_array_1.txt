@@ -1,0 +1,17 @@
+import numpy as np
+
+arr = [0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,0,0,0,255,255]
+
+arr = np.array([0,0,0,0,0,0,0,255,255,255,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,0,0,0,255,255])
+unique, counts = np.unique(arr, return_counts=True)
+percentages = counts / arr.size * 100
+for value, percentage in zip(unique, percentages):
+    print(f"Value: {value}, Percentage: {percentage}%")
+
+
+
+
+
+
+Value: 0, Percentage: 81.25%
+Value: 255, Percentage: 18.75%

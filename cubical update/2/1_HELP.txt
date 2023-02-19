@@ -1,0 +1,10 @@
+how to know about any method for example .fit() using console
+In Python, you can use the built-in help() function to learn about any method, including the fit() method. Here's an example:
+
+scss
+Copy code
+help(fit)
+Alternatively, you can also use the ? operator in IPython or Jupyter notebooks to get the same information:
+
+Copy code
+fit?

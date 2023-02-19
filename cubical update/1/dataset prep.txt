@@ -1,0 +1,190 @@
+make patches from image and save to disk
+
+import gdal
+import numpy as np
+import skimage
+from skimage import util
+
+# Load the first dataset
+ds = gdal.Open("path/to/dataset1.tif")
+arr = ds.ReadAsArray()
+
+# Create an empty list to store the patches
+patches = []
+labels = []
+
+# Loop over all the datasets
+for i in range(1, 40):
+  ds = gdal.Open(f"path/to/dataset{i}.tif")
+  arr = ds.ReadAsArray()
+  
+  # Slice the array into overlapping patches of size 256x256
+  for row in range(0, arr.shape[0], 256):
+    for col in range(0, arr.shape[1], 256):
+      patch = arr[row:row+256, col:col+256]
+      patches.append(patch)
+      
+      # Assign a label to each patch based on the cloud coverage
+      if np.mean(patch) < 128:
+        labels.append(0) # Not Cloud
+      elif np.mean(patch) < 200:
+        labels.append(1) # Thin Cloud
+      else:
+        labels.append(2) # Thick Cloud
+
+# Convert the list of patches to a NumPy array
+patches = np.array(patches)
+labels = np.array(labels)
+
+# Save the patches and labels to disk
+np.save("patches.npy", patches)
+np.save("labels.npy", labels)
+
+
+
+
+
+convert npy to tif
+
+import gdal
+import numpy as np
+
+# Load the numpy array
+npy_array = np.load('input_file.npy')
+
+# Create a driver for TIFF format
+driver = gdal.GetDriverByName('GTiff')
+
+# Create a new TIFF file
+shape = npy_array.shape
+datatype = gdal.GDT_Float32
+
+# Create a new TIFF file
+output_tif = driver.Create('output_file.tif', shape[1], shape[0], 1, datatype)
+
+# Write the numpy array to the TIFF file
+output_tif.GetRasterBand(1).WriteArray(npy_array)
+
+# Set the GeoTIFF projection information
+output_tif.SetProjection('GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433]]')
+
+# Close the TIFF file
+output_tif = None
+
+
+
+
+
+change 4 classes to 2 classes
+
+import numpy as np
+
+arr = np.array([255, 192, 128, 64])
+
+arr = np.where(arr == 64, 128, arr)
+arr = np.where(arr == 192, 255, arr)
+
+
+
+
+
+change 4 classes ro 2 classes
+
+import numpy as np
+
+arr = np.array([255, 192, 128, 64])
+
+for i, value in enumerate(arr):
+    if value == 64:
+        arr[i] = 128
+    elif value == 192:
+        arr[i] = 255
+
+
+
+
+
+
+
+
+
+
+
+
+patches of .img file
+
+import numpy as np
+import rasterio
+from rasterio.windows import Window
+
+# Load the first .img file
+with rasterio.open("path/to/dataset1.img") as src:
+    arr = src.read(1) # Read only the first band
+
+# Create an empty list to store the patches
+patches = []
+labels = []
+
+# Loop over all the datasets
+for i in range(1, 40):
+    with rasterio.open(f"path/to/dataset{i}.img") as src:
+        arr = src.read(1) # Read only the first band
+
+        # Slice the array into overlapping patches of size 256x256
+        for row in range(0, arr.shape[0], 256):
+            for col in range(0, arr.shape[1], 256):
+                patch = arr[row:row+256, col:col+256]
+                patches.append(patch)
+
+                # Assign a label to each patch based on the cloud coverage
+                if np.mean(patch) < 128:
+                    labels.append(0) # Not Cloud
+                elif np.mean(patch) < 200:
+                    labels.append(1) # Thin Cloud
+                else:
+                    labels.append(2) # Thick Cloud
+
+# Convert the list of patches to a NumPy array
+patches = np.array(patches)
+labels = np.array(labels)
+
+# Save the patches and labels to disk
+np.save("patches.npy", patches)
+np.save("labels.npy", labels)
+
+--
+OR
+--
+
+import gdal
+import numpy as np
+
+# Load the dataset
+ds = gdal.Open("path/to/dataset.img")
+arr = ds.ReadAsArray()
+
+# Create an empty list to store the patches
+patches = []
+labels = []
+
+# Slice the array into overlapping patches of size 256x256
+for row in range(0, arr.shape[0], 256):
+    for col in range(0, arr.shape[1], 256):
+        patch = arr[row:row+256, col:col+256]
+        patches.append(patch)
+        
+        # Assign a label to each patch based on the cloud coverage
+        if np.mean(patch) < 128:
+            labels.append(0) # Not Cloud
+        elif np.mean(patch) < 200:
+            labels.append(1) # Thin Cloud
+        else:
+            labels.append(2) # Thick Cloud
+
+# Convert the list of patches to a NumPy array
+patches = np.array(patches)
+labels = np.array(labels)
+
+# Save the patches and labels to disk
+np.save("patches.npy", patches)
+np.save("labels.npy", labels)

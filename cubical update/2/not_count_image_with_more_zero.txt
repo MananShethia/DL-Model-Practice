@@ -1,0 +1,18 @@
+import gdal
+import numpy as np
+
+# Load the first dataset
+ds = gdal.Open("path/to/dataset1.tif")
+arr = ds.ReadAsArray()
+
+# Loop over all the datasets
+for i in range(1, 40):
+  ds = gdal.Open(f"path/to/dataset{i}.tif")
+  arr = ds.ReadAsArray()
+  
+  # Check if the proportion of zeros is greater than 80%
+  print(np.mean(np.array(arr)))
+  if np.mean(arr) > 0.8:
+    print(f"Skipping dataset due to high proportion of zeros")
+  
+  # Your code for processing the image here...

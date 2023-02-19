@@ -1,0 +1,21 @@
+# evaluate the model on the test data set
+
+model.evaluate(X_test, y_test)
+
+# making prediction
+
+index2 = random.randint(0, len(X_test))
+plt.imshow(X_test[index2, :])
+plt.show()
+
+y_pred = model.predict(X_test[index2, :].reshape(1, 100, 100, 3))
+print('probability of image: ', y_pred)
+
+y_pred = y_pred > 0.5
+print('boolean probability of image: ', y_pred)
+if(y_pred == 0):
+    pred = 'dog'
+else:
+    pred = 'cat'
+
+print('According to model it is: ', pred)

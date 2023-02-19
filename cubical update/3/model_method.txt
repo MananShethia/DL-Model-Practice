@@ -1,0 +1,69 @@
+.fit(): This method is used to train a model on a fixed number of epochs (iterations on a dataset) with specified batch size (number of samples per gradient update) and it returns a history of training accuracy and loss values.
+
+Syntax: model.fit(X_train, y_train, epochs=N, batch_size=M, validation_data=(X_val, y_val))
+
+X_train: training data inputs
+y_train: training data outputs
+epochs: number of times to go over the entire training dataset
+batch_size: number of samples per gradient update
+validation_data: data to validate the model after each epoch
+.compile(): This method is used to specify the loss function, optimizer, and metrics to be used during training.
+
+Syntax: model.compile(loss='LossFunction', optimizer='Optimizer', metrics=['metric_1', 'metric_2', ...])
+
+loss: a function to minimize during training, e.g., mean squared error, binary crossentropy, categorical crossentropy
+optimizer: algorithm to update the weights, e.g., stochastic gradient descent, Adam, RMSprop
+metrics: list of metrics to evaluate the model, e.g., accuracy, precision, recall
+.fit_generator(): This method is used to train a model using a data generator which generates batches of data on the fly instead of preloading all data in memory. It is useful for training on large datasets.
+
+Syntax: model.fit_generator(generator, steps_per_epoch, epochs, validation_data, validation_steps)
+
+generator: a generator function that yields batches of input/output data
+steps_per_epoch: number of times the generator should be called in each epoch
+epochs: number of times to go over the entire training dataset
+validation_data: data to validate the model after each epoch
+validation_steps: number of steps to validate the model in each epoch
+.summary(): This method provides a summary of the model architecture, including the number of parameters, and the shapes of the inputs and outputs of each layer.
+
+Syntax: model.summary()
+
+There are many other methods and parameters in Keras (the most popular deep learning library) that can be used for model training, but these are the most commonly used ones.
+
+
+
+
+
+.predict(): This method is used to make predictions on new data. It returns the model's predicted outputs for the input data.
+
+Syntax: model.predict(X_test)
+
+X_test: test data inputs
+.evaluate(): This method is used to evaluate the model's performance on a given test dataset. It returns the values of specified loss function and metrics.
+
+Syntax: model.evaluate(X_test, y_test, batch_size=None)
+
+X_test: test data inputs
+y_test: test data outputs
+batch_size: number of samples per gradient update, default is 32
+.predict_classes(): This method is used to make class predictions for a binary classification problem, it returns the predicted class labels as integers.
+
+Syntax: model.predict_classes(X_test, batch_size=None)
+
+X_test: test data inputs
+batch_size: number of samples per gradient update, default is 32
+.predict_proba(): This method is used to make class probability predictions for a binary classification problem, it returns the predicted class probabilities.
+
+Syntax: model.predict_proba(X_test, batch_size=None)
+
+X_test: test data inputs
+batch_size: number of samples per gradient update, default is 32
+.save(): This method is used to save a trained model to disk, so that it can be loaded later and used for predictions.
+
+Syntax: model.save('model.h5')
+
+'model.h5': name of the file where the model will be saved.
+.load_weights(): This method is used to load the weights of a previously saved model into a new model.
+
+Syntax: model.load_weights('weights.h5')
+
+'weights.h5': name of the file where the weights are saved.

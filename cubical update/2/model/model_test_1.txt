@@ -1,0 +1,44 @@
+import gdal
+import numpy as np
+from sklearn.model_selection import train_test_split
+
+# Load the red, blue, green bands and ground truth masks using gdal
+red = gdal.Open("path/to/red_band.tif").ReadAsArray()
+blue = gdal.Open("path/to/blue_band.tif").ReadAsArray()
+green = gdal.Open("path/to/green_band.tif").ReadAsArray()
+gt = gdal.Open("path/to/ground_truth.tif").ReadAsArray()
+
+# Create an empty list to store the patches
+patches = []
+labels = []
+
+# Slice the arrays into overlapping patches of size 256x256
+for row in range(0, arr.shape[0], 256):
+  for col in range(0, arr.shape[1], 256):
+    red_patch = red[row:row+256, col:col+256]
+    blue_patch = blue[row:row+256, col:col+256]
+    green_patch = green[row:row+256, col:col+256]
+    gt_patch = gt[row:row+256, col:col+256]
+    
+    patches.append(np.dstack((red_patch, blue_patch, green_patch)))
+    
+    # Assign a label to each patch based on the cloud coverage
+    if np.mean(gt_patch) < 128:
+      labels.append(0) # Not Cloud
+    elif np.mean(gt_patch) < 200:
+      labels.append(1) # Thin Cloud
+    else:
+      labels.append(2) # Thick Cloud
+
+# Convert the list of patches to a NumPy array
+patches = np.array(patches)
+labels = np.array(labels)
+
+# Normalize the patches
+patches = patches / 255
+
+# Split the patches into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(patches, labels, test_size=0.2)
+
+# Save the patches and labels to disk
+np.save("X_train.npy",
