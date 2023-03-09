@@ -1,0 +1,7 @@
+what is meant by "highly imbalance dataset" or "equal data distribution"
+
+A highly imbalanced dataset refers to a situation in which the distribution of target classes in a dataset is highly skewed towards one class, with very few examples of the other classes. For example, in a binary classification problem, if one class has only 5% of the total examples, and the other class has 95% of the examples, then we can say that the dataset is highly imbalanced.
+
+On the other hand, equal data distribution means that the dataset has a roughly equal number of examples for each class. For example, in a binary classification problem, if each class has 50% of the total examples, then we can say that the data is equally distributed.
+
+In general, it is desirable to have a balanced dataset for training machine learning models as it ensures that the model is exposed to a similar number of examples from each class, which can help improve the model's performance. However, in some real-world scenarios, it is common to have highly imbalanced datasets where one class is of greater importance than the other. In such cases, special techniques like data augmentation, resampling, or class weighting can be used to handle the imbalanced dataset.

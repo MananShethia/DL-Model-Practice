@@ -1,0 +1,26 @@
+this week, 
+trained all three set of different bands model with BCE and L2 regularization 
+studied the RS-Net structure using their code provided from that i come to know which activation function(elu), loss function(BCE), layers in U-net architecture(5 + 1 bridge) and many more parameters i came to know
+studied the survey of different  loss function use in semantic segmentation and will make a loss function in my code according to survey
+
+
+
+make a compete detailed report by explaining in more technical detail
+
+
+
+
+
+
+
+
+
+During this week, I worked on training three different sets of models using binary cross-entropy (BCE) and L2 regularization. The models were trained on different bands, and I used the provided code to study the structure of RS-Net. This helped me to understand the activation function used in the RS-Net architecture, which is elu. Additionally, I learned that BCE is the loss function used in RS-Net.
+
+I also studied the U-Net architecture, which is commonly used in semantic segmentation. The U-Net architecture consists of five down-sampling layers followed by an up-sampling layer, which creates a bridge between the encoding and decoding layers. The up-sampling layer is followed by a convolutional layer to reduce the dimensionality of the feature maps. Finally, the output layer consists of a single convolutional layer, which produces a segmentation map.
+
+Furthermore, I studied the survey of different loss functions used in semantic segmentation. I learned that the focal loss and Tversky loss are commonly used for imbalanced datasets. The focal loss is designed to focus on hard examples in the dataset, while Tversky loss focuses on the false positives and false negatives. I also learned that combining these two loss functions can lead to better results, especially for highly imbalanced datasets.
+
+Based on this survey, I plan to create a customized loss function for my semantic segmentation model, which combines focal and Tversky loss. This will allow me to handle highly imbalanced datasets, which are commonly encountered in remote sensing applications.
+
+In summary, this week, I gained a deeper understanding of the structure of RS-Net and U-Net architecture, different types of loss functions used in semantic segmentation, and their applications for highly imbalanced datasets. This knowledge will be crucial in designing an accurate and robust semantic segmentation model for remote sensing applications.

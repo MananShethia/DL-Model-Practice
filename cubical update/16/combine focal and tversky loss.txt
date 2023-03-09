@@ -1,0 +1,26 @@
+combine focal and Tversky Loss in one function 
+Here's an example implementation of a combined focal and Tversky loss function:
+
+scss
+Copy code
+import tensorflow as tf
+
+def focal_tversky_loss(y_true, y_pred, alpha=0.75, beta=0.25, gamma=2.0, smooth=1e-6):
+    # compute Tversky loss
+    y_true = tf.cast(y_true, tf.float32)
+    y_pred = tf.cast(y_pred, tf.float32)
+    true_positives = tf.reduce_sum(y_true * y_pred, axis=[1,2,3])
+    false_positives = tf.reduce_sum((1 - y_true) * y_pred, axis=[1,2,3])
+    false_negatives = tf.reduce_sum(y_true * (1 - y_pred), axis=[1,2,3])
+    tversky_loss = (true_positives + smooth) / (true_positives + beta * false_positives + alpha * false_negatives + smooth)
+    
+    # compute focal loss
+    pt = tf.where(tf.equal(y_true, 1), y_pred, 1 - y_pred)
+    focal_loss = -gamma * tf.pow(1 - pt, gamma) * tf.math.log(pt + smooth)
+    
+    # combine the two losses
+    loss = tversky_loss * focal_loss
+    loss = tf.reduce_mean(loss)
+    
+    return loss
+This function takes in the true labels y_true and predicted labels y_pred and combines the Tversky loss and focal loss with hyperparameters alpha, beta, gamma, and smooth. The Tversky loss measures the overlap between the true and predicted labels, while the focal loss puts more emphasis on hard examples. The two losses are then combined element-wise, and the mean of the resulting loss over all samples is returned.
