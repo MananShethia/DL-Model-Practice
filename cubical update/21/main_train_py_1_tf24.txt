@@ -1,0 +1,68 @@
+from __future__ import print_function
+from sklearn.model_selection import train_test_split
+import os
+import numpy as np
+from utils import ADAMLearningRateTracker
+import cloud_net_model
+from losses import jacc_coef
+from keras.optimizers import Adam
+from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, CSVLogger
+from generators import mybatch_generator_train, mybatch_generator_validation
+import pandas as pd
+from utils import get_input_image_names
+import tensorflow as tf
+
+def train():
+    strategy = tf.distribute.MirroredStrategy()
+    with strategy.scope():
+        model = cloud_net_model.model_arch(input_rows=in_rows,
+                                           input_cols=in_cols,
+                                           num_of_channels=num_of_channels,
+                                           num_of_classes=num_of_classes)
+        model.compile(optimizer=Adam(lr=starting_learning_rate), loss=jacc_coef, metrics=[jacc_coef])
+
+    # model.summary()
+
+    model_checkpoint = ModelCheckpoint(weights_path, monitor='val_loss', save_best_only=True)
+    lr_reducer = ReduceLROnPlateau(factor=decay_factor, cooldown=0, patience=patience, min_lr=end_learning_rate, verbose=1)
+    csv_logger = CSVLogger(experiment_name + '_log_1.log')
+
+    train_img_split, val_img_split, train_msk_split, val_msk_split = train_test_split(train_img, train_msk,
+                                                                                      test_size=val_ratio,
+                                                                                      random_state=42, shuffle=True)
+
+    if train_resume:
+        model.load_weights(weights_path)
+        print("\nTraining resumed...")
+    else:
+        print("\nTraining started from scratch... ")
+
+    print("Experiment name: ", experiment_name)
+    print("Input image size: ", (in_rows, in_cols))
+    print("Number of input spectral bands: ", num_of_channels)
+    print("Learning rate: ", starting_learning_rate)
+    print("Batch size: ", batch_sz, "\n")
+
+    train_dataset = tf.data.Dataset.from_generator(
+        lambda: mybatch_generator_train(list(zip(train_img_split, train_msk_split)), in_rows, in_cols, batch_sz, max_bit),
+        output_types=(tf.float32, tf.float32),
+        output_shapes=([batch_sz, in_rows, in_cols, num_of_channels], [batch_sz, in_rows, in_cols, num_of_classes])
+    ).repeat()
+
+    val_dataset = tf.data.Dataset.from_generator(
+        lambda: mybatch_generator_validation(list(zip(val_img_split, val_msk_split)), in_rows, in_cols, batch_sz, max_bit),
+        output_types=(tf.float32, tf.float32),
+        output_shapes=([batch_sz, in_rows, in_cols, num_of_channels], [batch_sz, in_rows, in_cols, num_of_classes])
+    ).repeat()
+
+    train_dataset = strategy.experimental_distribute_dataset(train_dataset)
+    val_dataset = strategy.experimental_distribute_dataset(val_dataset)
+
+    model.fit(
+        train_dataset,
+        steps_per_epoch=np.ceil(len(train_img_split) / batch_sz),
+        epochs=max_num_epochs,
+        verbose=1,
+        validation_data=val_dataset,
+        validation_steps=np.ceil(len(val_img_split) / batch_sz),
+        callbacks=[model_checkpoint, lr

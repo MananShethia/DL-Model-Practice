@@ -1,0 +1,55 @@
+To run the code on 2 GPUs with full memory usage, you can use the tf.distribute.MirroredStrategy() in TensorFlow. Here is how you can modify the code:
+
+Import TensorFlow and the required classes for distribution strategy:
+python
+Copy code
+import tensorflow as tf
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, CSVLogger
+Define the distribution strategy and create the model within the scope of the strategy:
+python
+Copy code
+strategy = tf.distribute.MirroredStrategy(devices=["/gpu:2", "/gpu:3"])
+with strategy.scope():
+    model = cloud_net_model.model_arch(input_rows=in_rows,
+                                       input_cols=in_cols,
+                                       num_of_channels=num_of_channels,
+                                       num_of_classes=num_of_classes)
+    model.compile(optimizer=Adam(lr=starting_learning_rate), loss=jacc_coef, metrics=[jacc_coef])
+Modify the batch generator function to return a tuple of images and labels per GPU:
+python
+Copy code
+def batch_generator_train(data_list, in_rows, in_cols, batch_sz, max_bit):
+    while True:
+        # shuffle data_list
+        np.random.shuffle(data_list)
+        for i in range(0, len(data_list), batch_sz*strategy.num_replicas_in_sync):
+            batch = data_list[i:i+batch_sz*strategy.num_replicas_in_sync]
+            images = []
+            masks = []
+            for j in range(strategy.num_replicas_in_sync):
+                batch_per_gpu = batch[j*batch_sz:(j+1)*batch_sz]
+                batch_images = [cv2.imread(file, -1) for file, _ in batch_per_gpu]
+                batch_images = np.array(batch_images).astype(np.float32)
+                batch_images /= max_bit
+                batch_masks = [cv2.imread(file, -1) for _, file in batch_per_gpu]
+                batch_masks = np.array(batch_masks).astype(np.float32)
+                batch_masks /= max_bit
+                images.append(batch_images)
+                masks.append(batch_masks)
+            yield tuple(images), tuple(masks)
+Modify the validation batch generator function in the same way as the training batch generator.
+
+Wrap the fit_generator() method with strategy.scope():
+
+python
+Copy code
+with strategy.scope():
+    model.fit_generator(
+        generator=batch_generator_train(list(zip(train_img_split, train_msk_split)), in_rows, in_cols, batch_sz, max_bit),
+        steps_per_epoch=np.ceil(len(train_img_split) / (batch_sz*strategy.num_replicas_in_sync)),
+        epochs=max_num_epochs, verbose=1,
+        validation_data=batch_generator_validation(list(zip(val_img_split, val_msk_split)), in_rows, in_cols, batch_sz, max_bit),
+        validation_steps=np.ceil(len(val_img_split) / (batch_sz*strategy.num_replicas_in_sync)),
+        callbacks=[model_checkpoint, lr_reducer, ADAMLearningRateTracker(end_learning_rate), csv_logger])
+By default, the MirroredStrategy() will use all available GPUs, so make sure that there are no other jobs using the GPUs you specified. Also, note that this code assumes that your GPUs have at least 16 GB of memory each. If your GPUs have less memory, you may need to adjust the batch size to fit within the available memory.

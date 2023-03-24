@@ -1,0 +1,70 @@
+To run the training on 2 GPUs with full memory usage using TensorFlow distribution strategy, you can use the MirroredStrategy API which is recommended for multi-GPU training in TensorFlow.
+
+Here is how you can modify your code:
+
+python
+Copy code
+import tensorflow as tf
+
+# Define the distribution strategy
+strategy = tf.distribute.MirroredStrategy(devices=["/gpu:2", "/gpu:3"])
+
+# Define the model within the distribution scope
+with strategy.scope():
+    model = cloud_net_model.model_arch(input_rows=in_rows,
+                                       input_cols=in_cols,
+                                       num_of_channels=num_of_channels,
+                                       num_of_classes=num_of_classes)
+    
+    model.compile(optimizer=Adam(lr=starting_learning_rate), loss=jacc_coef, metrics=[jacc_coef])
+
+    model_checkpoint = ModelCheckpoint(weights_path, monitor='val_loss', save_best_only=True)
+    lr_reducer = ReduceLROnPlateau(factor=decay_factor, cooldown=0, patience=patience, min_lr=end_learning_rate, verbose=1)
+    csv_logger = CSVLogger(experiment_name + '_log_1.log')
+
+# Split the data among the GPUs
+train_img_split, val_img_split, train_msk_split, val_msk_split = train_test_split(train_img, train_msk,
+                                                                                  test_size=val_ratio,
+                                                                                  random_state=42, shuffle=True)
+
+# Define the batch size per GPU
+global_batch_size = batch_sz * strategy.num_replicas_in_sync
+
+# Define the training dataset
+train_dataset = tf.data.Dataset.from_generator(
+    lambda: mybatch_generator_train(list(zip(train_img_split, train_msk_split)), in_rows, in_cols, batch_sz, max_bit),
+    output_types=(tf.float32, tf.float32),
+    output_shapes=((None, in_rows, in_cols, num_of_channels), (None, in_rows, in_cols, num_of_classes)))
+
+# Batch and prefetch the training dataset
+train_dataset = train_dataset.batch(global_batch_size).prefetch(tf.data.AUTOTUNE)
+
+# Define the validation dataset
+val_dataset = tf.data.Dataset.from_generator(
+    lambda: mybatch_generator_validation(list(zip(val_img_split, val_msk_split)), in_rows, in_cols, batch_sz, max_bit),
+    output_types=(tf.float32, tf.float32),
+    output_shapes=((None, in_rows, in_cols, num_of_channels), (None, in_rows, in_cols, num_of_classes)))
+
+# Batch and prefetch the validation dataset
+val_dataset = val_dataset.batch(global_batch_size).prefetch(tf.data.AUTOTUNE)
+
+# Define the callbacks
+callbacks=[model_checkpoint, lr_reducer, ADAMLearningRateTracker(end_learning_rate), csv_logger]
+
+# Define the number of steps per epoch
+steps_per_epoch = np.ceil(len(train_img_split) / global_batch_size)
+
+# Define the number of validation steps
+validation_steps = np.ceil(len(val_img_split) / global_batch_size)
+
+# Train the model
+model.fit(train_dataset, 
+          steps_per_epoch=steps_per_epoch, 
+          epochs=max_num_epochs, 
+          verbose=1,
+          validation_data=val_dataset, 
+          validation_steps=validation_steps, 
+          callbacks=callbacks)
+In the modified code, we first create a MirroredStrategy object with the devices argument set to the GPUs we want to use ("/gpu:2", "/gpu:3"). We then define the model architecture and compile it within the scope of this strategy.
+
+The training and validation datasets are created using the tf.data.Dataset.from_generator() method and batched and prefetched using the batch() and prefetch() methods. The batch size per GPU is calculated by multiplying the batch size by the number of replicas in sync (`strategy.num_rep

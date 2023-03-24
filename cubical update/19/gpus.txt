@@ -1,0 +1,186 @@
+where we have to write export CUDA_VISIBLE_DEVICES=0,1
+in code or in .bashrc
+|
+You can set the CUDA_VISIBLE_DEVICES environment variable either in your code or in your shell environment, such as in your .bashrc file.
+
+If you set the CUDA_VISIBLE_DEVICES variable in your code, it will only apply to that specific Python script. You can set the variable at the beginning of your script, before importing any TensorFlow libraries, using the os module:
+
+lua
+Copy code
+import os
+os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
+In the above example, we are setting CUDA_VISIBLE_DEVICES to use GPU 0 and GPU 1.
+
+Alternatively, if you set the CUDA_VISIBLE_DEVICES variable in your shell environment, it will apply to all subsequent TensorFlow sessions. You can add the following line to your .bashrc file to set the variable every time you open a new terminal:
+
+javascript
+Copy code
+export CUDA_VISIBLE_DEVICES=0,1
+In the above example, we are setting CUDA_VISIBLE_DEVICES to use GPU 0 and GPU 1.
+
+Note that setting CUDA_VISIBLE_DEVICES in your .bashrc file may affect other applications that use GPUs, so it's generally a good practice to only set it when necessary.
+
+--------------------------------------
+
+i am training my model in deep learning how can i use 2 gpus to train my model
+|
+To use 2 GPUs to train your model in deep learning, you can use TensorFlow's MirroredStrategy API. MirroredStrategy is a TensorFlow strategy that can be used to train a model on multiple GPUs on a single machine. It creates copies of the model's variables on each GPU and uses all available GPUs to compute gradients in parallel during training.
+
+Here are the steps to use MirroredStrategy API to train a model on two GPUs:
+
+Import the necessary libraries:
+python
+Copy code
+import tensorflow as tf
+Define a MirroredStrategy object:
+css
+Copy code
+strategy = tf.distribute.MirroredStrategy(devices=["/gpu:0", "/gpu:1"])
+In the above code, we are creating a MirroredStrategy object and passing a list of two GPU devices ("/gpu:0" and "/gpu:1") to it.
+
+Define your TensorFlow session:
+python
+Copy code
+with strategy.scope():
+  # Define and compile your TensorFlow model here
+In the above code, we are using the with strategy.scope() context manager to specify that we want to use the MirroredStrategy object for our TensorFlow session.
+
+Train your model:
+scss
+Copy code
+model.fit(train_dataset, epochs=num_epochs, steps_per_epoch=num_steps_per_epoch)
+In the above code, we are using the fit() method to train our model. The train_dataset object is a TensorFlow dataset object that contains our training data.
+
+By following these steps, you can ensure that your model is trained on both GPUs in parallel using TensorFlow's MirroredStrategy API. Note that the performance gain you get from using two GPUs will depend on the size of your model and the size of your training data.
+
+-----------------------------------
+
+i have 8 GPUs in which i want to use 2 GPUs how can i define in my code to split the training
+|
+To use only 2 out of 8 available GPUs for training in TensorFlow, you can use the tf.distribute.Strategy API to distribute the training across multiple GPUs.
+
+Here's an example code snippet to distribute the training across 2 GPUs using the MirroredStrategy:
+
+python
+Copy code
+import tensorflow as tf
+
+# Set the GPUs to use
+gpus = tf.config.experimental.list_physical_devices('GPU')
+tf.config.experimental.set_visible_devices(gpus[:2], 'GPU')
+
+# Define the strategy
+strategy = tf.distribute.MirroredStrategy()
+
+# Define the model inside the strategy scope
+with strategy.scope():
+    model = ... # Define your model here
+
+# Compile the model and fit it using the strategy
+model.compile(...)
+model.fit(..., epochs=...)
+In the above example, we first set the visible devices to use the first 2 GPUs using tf.config.experimental.set_visible_devices() function. Then, we define a MirroredStrategy object to distribute the training across the 2 GPUs. We define the model inside the strategy.scope() context manager, which ensures that the variables are replicated across the GPUs. Finally, we compile and fit the model using the model.compile() and model.fit() functions, passing the strategy object to distribute the training across the 2 GPUs.
+
+Note that you may need to adjust the batch size and learning rate when training with fewer GPUs to get similar performance as training with all GPUs.
+
+---------------------------------
+
+how to check CUDA and cuDNN version
+|
+You can check the version of CUDA and cuDNN installed on your system by following these steps:
+
+Check the version of CUDA:
+
+css
+Copy code
+nvcc --version
+This will print the version of CUDA installed on your system. For example:
+
+vbnet
+Copy code
+nvcc: NVIDIA (R) Cuda compiler driver
+Copyright (c) 2005-2021 NVIDIA Corporation
+Built on Sun_Feb_14_21:12:58_PST_2021
+Cuda compilation tools, release 11.2, V11.2.152
+Build cuda_11.2.r11.2/compiler.29618528_0
+In the above example, the CUDA version is 11.2.
+
+Check the version of cuDNN:
+
+The location of the cuDNN installation may vary depending on how you installed it. By default, it is installed in /usr/local/cuda/include/cudnn.h and /usr/local/cuda/lib64/libcudnn*. You can check the version of cuDNN by running:
+
+bash
+Copy code
+cat /usr/local/cuda/include/cudnn.h | grep CUDNN_MAJOR -A 2
+This will print the version of cuDNN installed on your system. For example:
+
+c
+Copy code
+#define CUDNN_MAJOR 8
+#define CUDNN_MINOR 2
+#define CUDNN_PATCHLEVEL 2
+--
+#include "driver_types.h"
+#include "cudnn_version.h"
+In the above example, the cuDNN version is 8.2.2.
+
+Note that the version of TensorFlow you are using may have specific requirements for the versions of CUDA and cuDNN. You should check the TensorFlow documentation for the specific version you are using to make sure you have installed the correct versions of CUDA and cuDNN.
+
+----------------------------------
+
+how to update cuda version but in my system internet is not available
+|
+If your system does not have an internet connection and you need to update the CUDA version, you can download the offline installer for the desired version from the NVIDIA website using another system with internet access, and then transfer the installer to your offline system using a USB drive or other storage media.
+
+Here are the steps to update the CUDA version on an offline system:
+
+Download the offline installer for the desired version of the CUDA Toolkit from the NVIDIA website using a system with internet access.
+
+Transfer the installer file to your offline system using a USB drive or other storage media.
+
+Navigate to the directory where the installer file is located on your offline system.
+
+Make the installer executable by running the following command:
+
+bash
+Copy code
+chmod +x cuda_<version>_linux.run
+Replace <version> with the version number of the CUDA toolkit you downloaded.
+
+Disable the X server by stopping the display manager. This is necessary because the CUDA installer cannot be run with the X server running. The commands to stop the display manager may vary depending on your Linux distribution. For example, on Ubuntu, you can use the following command:
+
+vbnet
+Copy code
+sudo service lightdm stop
+On CentOS/RHEL, you can use the following command:
+
+css
+Copy code
+sudo systemctl stop display-manager
+Run the installer by running the following command:
+
+css
+Copy code
+sudo ./cuda_<version>_linux.run --silent --toolkit --override
+Replace <version> with the version number of the CUDA toolkit you downloaded. The --silent option suppresses all installer prompts, the --toolkit option installs only the CUDA Toolkit, and the --override option overrides any compatibility checks.
+
+Follow the on-screen instructions to complete the installation. During the installation process, make sure to select the appropriate options for your system and requirements.
+
+Once the installation is complete, restart the display manager by running the following command:
+
+sql
+Copy code
+sudo service lightdm start
+Or on CentOS/RHEL, use the following command:
+
+css
+Copy code
+sudo systemctl start display-manager
+Verify that the new version of CUDA has been installed by running the following command:
+
+css
+Copy code
+nvcc --version
+This should print the version number of the newly installed CUDA toolkit.
+
+Note that updating the CUDA version may require you to update other components such as cuDNN, and you may also need to update your environment variables and configuration files to point to the new installation paths. Make sure to review the CUDA installation guide and any relevant documentation before updating.

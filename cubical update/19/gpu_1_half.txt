@@ -1,0 +1,62 @@
+import tensorflow as tf
+
+def train(gpu_ids=[2, 3]):
+    strategy = tf.distribute.MirroredStrategy(devices=[f"/gpu:{gpu_id}" for gpu_id in gpu_ids])
+    with strategy.scope():
+        model = cloud_net_model.model_arch(input_rows=in_rows,
+                                           input_cols=in_cols,
+                                           num_of_channels=num_of_channels,
+                                           num_of_classes=num_of_classes)
+        model.compile(optimizer=Adam(lr=starting_learning_rate), loss=jacc_coef, metrics=[jacc_coef])
+
+    model_checkpoint = ModelCheckpoint(weights_path, monitor='val_loss', save_best_only=True)
+    lr_reducer = ReduceLROnPlateau(factor=decay_factor, cooldown=0, patience=patience, min_lr=end_learning_rate, verbose=1)
+    csv_logger = CSVLogger(experiment_name + '_log_1.log')
+
+    train_img_split, val_img_split, train_msk_split, val_msk_split = train_test_split(train_img, train_msk,
+                                                                                      test_size=val_ratio,
+                                                                                      random_state=42, shuffle=True)
+
+    if train_resume:
+        model.load_weights(weights_path)
+        print("\nTraining resumed...")
+    else:
+        print("\nTraining started from scratch... ")
+
+    print("Experiment name: ", experiment_name)
+    print("Input image size: ", (in_rows, in_cols))
+    print("Number of input spectral bands: ", num_of_channels)
+    print("Learning rate: ", starting_learning_rate)
+    print("Batch size per GPU: ", batch_sz, "\n")
+
+    train_dataset = tf.data.Dataset.from_generator(
+        lambda: mybatch_generator_train(list(zip(train_img_split, train_msk_split)), in_rows, in_cols, batch_sz, max_bit),
+        output_signature=(
+            tf.TensorSpec(shape=(None, in_rows, in_cols, num_of_channels), dtype=tf.float32),
+            tf.TensorSpec(shape=(None, in_rows, in_cols, num_of_classes), dtype=tf.float32)
+        )
+    )
+    train_dist_dataset = strategy.experimental_distribute_dataset(train_dataset)
+
+    val_dataset = tf.data.Dataset.from_generator(
+        lambda: mybatch_generator_validation(list(zip(val_img_split, val_msk_split)), in_rows, in_cols, batch_sz, max_bit),
+        output_signature=(
+            tf.TensorSpec(shape=(None, in_rows, in_cols, num_of_channels), dtype=tf.float32),
+            tf.TensorSpec(shape=(None, in_rows, in_cols, num_of_classes), dtype=tf.float32)
+        )
+    )
+    val_dist_dataset = strategy.experimental_distribute_dataset(val_dataset)
+
+    total_batch_size = batch_sz * len(gpu_ids)
+    model.fit(train_dist_dataset, steps_per_epoch=np.ceil(len(train_img_split) /
+
+
+
+
+
+
+
+
+
+
+
